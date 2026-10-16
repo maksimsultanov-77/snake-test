@@ -123,11 +123,11 @@ export function useSnakeGame() {
         case 'RIGHT': head.x += 1; break;
       }
 
-      // Check wall collision
-      if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
-        setGameState('gameover');
-        return prevSnake;
-      }
+      // Wrap around walls
+      if (head.x < 0) head.x = GRID_SIZE - 1;
+      else if (head.x >= GRID_SIZE) head.x = 0;
+      if (head.y < 0) head.y = GRID_SIZE - 1;
+      else if (head.y >= GRID_SIZE) head.y = 0;
 
       // Check self collision
       if (prevSnake.some(s => s.x === head.x && s.y === head.y)) {
