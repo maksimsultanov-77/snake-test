@@ -17,6 +17,17 @@ const SPEED_MAP: Record<Difficulty, number> = {
   hard: 70,
 };
 
+function randomColor(): string {
+  const hue = Math.floor(Math.random() * 360);
+  const saturation = 70 + Math.floor(Math.random() * 25);
+  const lightness = 50 + Math.floor(Math.random() * 15);
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+function generateColors(count: number): string[] {
+  return Array.from({ length: count }, () => randomColor());
+}
+
 function getRandomPosition(snake: Position[]): Position {
   let pos: Position;
   do {
@@ -36,6 +47,7 @@ const INITIAL_SNAKE: Position[] = [
 
 export function useSnakeGame() {
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
+  const [snakeColors, setSnakeColors] = useState<string[]>(() => generateColors(INITIAL_SNAKE.length));
   const [food, setFood] = useState<Position>({ x: 15, y: 10 });
   const [direction, setDirection] = useState<Direction>('RIGHT');
   const [gameState, setGameState] = useState<GameState>('idle');
@@ -53,6 +65,7 @@ export function useSnakeGame() {
 
   const resetGame = useCallback(() => {
     setSnake(INITIAL_SNAKE);
+    setSnakeColors(generateColors(INITIAL_SNAKE.length));
     setFood(getRandomPosition(INITIAL_SNAKE));
     setDirection('RIGHT');
     directionRef.current = 'RIGHT';
@@ -65,6 +78,7 @@ export function useSnakeGame() {
   const startGame = useCallback(() => {
     if (gameState === 'gameover' || gameState === 'idle') {
       setSnake(INITIAL_SNAKE);
+      setSnakeColors(generateColors(INITIAL_SNAKE.length));
       setFood(getRandomPosition(INITIAL_SNAKE));
       setDirection('RIGHT');
       directionRef.current = 'RIGHT';
@@ -137,6 +151,7 @@ export function useSnakeGame() {
           return newScore;
         });
         setFoodEaten(prev => prev + 1);
+        setSnakeColors(prev => [...prev, randomColor()]);
         setFood(getRandomPosition(newSnake));
         return newSnake;
       }
@@ -179,6 +194,7 @@ export function useSnakeGame() {
 
   return {
     snake,
+    snakeColors,
     food,
     direction,
     gameState,

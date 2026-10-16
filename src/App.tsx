@@ -4,6 +4,7 @@ import { useSnakeGame, Direction, Difficulty } from './useSnakeGame';
 function App() {
   const {
     snake,
+    snakeColors,
     food,
     gameState,
     score,
@@ -132,17 +133,15 @@ function App() {
         ctx.arc(eye2X, eye2Y, eyeSize, 0, Math.PI * 2);
         ctx.fill();
       } else {
-        // Each segment has a unique rainbow color
-        const hue = ((index - 1) / Math.max(snake.length - 1, 1)) * 300;
-        const saturation = 80 + Math.sin(index * 0.5) * 10;
-        const lightness = 55 + Math.sin(index * 0.3) * 8;
-        ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        // Each segment has a random unique color
+        const color = snakeColors[index] || `hsl(${(index * 37) % 360}, 80%, 55%)`;
+        ctx.fillStyle = color;
         ctx.beginPath();
         ctx.roundRect(x + padding + 1, y + padding + 1, cellSize - (padding + 1) * 2, cellSize - (padding + 1) * 2, 3);
         ctx.fill();
 
         // Subtle shine on each block
-        ctx.fillStyle = `rgba(255, 255, 255, 0.15)`;
+        ctx.fillStyle = `rgba(255, 255, 255, 0.18)`;
         ctx.beginPath();
         ctx.roundRect(x + padding + 2, y + padding + 2, (cellSize - (padding + 1) * 2) * 0.5, (cellSize - (padding + 1) * 2) * 0.35, 2);
         ctx.fill();
@@ -176,7 +175,7 @@ function App() {
       ctx.fillStyle = '#a29bfe';
       ctx.fillText('Нажмите для перезапуска', size / 2, size / 2 + 50);
     }
-  }, [snake, food, gameState, gridSize, score, getCanvasSize]);
+  }, [snake, snakeColors, food, gameState, gridSize, score, getCanvasSize]);
 
   // Animation frame
   useEffect(() => {
