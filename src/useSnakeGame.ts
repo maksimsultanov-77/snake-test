@@ -4,6 +4,16 @@ export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type GameState = 'idle' | 'playing' | 'paused' | 'gameover';
 
+export interface GameResult {
+  id: string;
+  score: number;
+  difficulty: Difficulty;
+  foodEaten: number;
+  snakeLength: number;
+  date: number;
+  duration: number; // seconds
+}
+
 interface Position {
   x: number;
   y: number;
@@ -26,6 +36,26 @@ function randomColor(): string {
 
 function generateColors(count: number): string[] {
   return Array.from({ length: count }, () => randomColor());
+}
+
+const HISTORY_KEY = 'snake-game-history';
+const MAX_HISTORY = 50;
+
+function loadHistory(): GameResult[] {
+  try {
+    const data = localStorage.getItem(HISTORY_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(history: GameResult[]): void {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+  } catch {
+    // storage full or unavailable
+  }
 }
 
 function getRandomPosition(snake: Position[]): Position {
@@ -58,10 +88,13 @@ export function useSnakeGame() {
   });
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [foodEaten, setFoodEaten] = useState(0);
+  const [history, setHistory] = useState<GameResult[]>(() => loadHistory());
+  const [showHistory, setShowHistory] = useState(false);
 
   const directionRef = useRef<Direction>('RIGHT');
   const gameLoopRef = useRef<number | null>(null);
   const lastDirectionRef = useRef<Direction>('RIGHT');
+  const startTimeRef = useRef<number>(Date.now());
 
   const resetGame = useCallback(() => {
     setSnake(INITIAL_SNAKE);
@@ -85,6 +118,7 @@ export function useSnakeGame() {
       lastDirectionRef.current = 'RIGHT';
       setScore(0);
       setFoodEaten(0);
+      startTimeRef.current = Date.now();
     }
     setGameState('playing');
   }, [gameState]);
@@ -179,9 +213,20 @@ export function useSnakeGame() {
     };
   }, [gameState, difficulty, moveSnake]);
 
-  // Update high score on game over
+  // Save result on game over
   useEffect(() => {
-    if (gameState === 'gameover') {
+    if (gameState === 'gameover' && score > 0) {
+      const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const result: GameResult = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        score,
+        difficulty,
+        foodEaten,
+        snakeLength: snake.length,
+        date: Date.now(),
+        duration,
+      };
+
       setHighScore(prev => {
         if (score > prev) {
           localStorage.setItem('snake-highscore', String(score));
@@ -189,8 +234,23 @@ export function useSnakeGame() {
         }
         return prev;
       });
+
+      setHistory(prev => {
+        const newHistory = [result, ...prev].slice(0, MAX_HISTORY);
+        saveHistory(newHistory);
+        return newHistory;
+      });
     }
-  }, [gameState, score]);
+  }, [gameState]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const clearHistory = useCallback(() => {
+    setHistory([]);
+    localStorage.removeItem(HISTORY_KEY);
+  }, []);
+
+  const toggleHistory = useCallback(() => {
+    setShowHistory(prev => !prev);
+  }, []);
 
   return {
     snake,
@@ -202,11 +262,15 @@ export function useSnakeGame() {
     highScore,
     difficulty,
     foodEaten,
+    history,
+    showHistory,
     gridSize: GRID_SIZE,
     startGame,
     pauseGame,
     resetGame,
     changeDirection,
     setDifficulty,
+    clearHistory,
+    toggleHistory,
   };
 }

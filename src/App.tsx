@@ -11,12 +11,16 @@ function App() {
     highScore,
     difficulty,
     foodEaten,
+    history,
+    showHistory,
     gridSize,
     startGame,
     pauseGame,
     resetGame,
     changeDirection,
     setDifficulty,
+    clearHistory,
+    toggleHistory,
   } = useSnakeGame();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -309,6 +313,12 @@ function App() {
           </h1>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={toggleHistory}
+            className="btn-game px-3 py-1.5 rounded-lg bg-amber-600/30 border border-amber-500/40 text-sm font-medium hover:bg-amber-600/50"
+          >
+            🏆 {history.length > 0 ? `(${history.length})` : ''}
+          </button>
           {gameState === 'playing' || gameState === 'paused' ? (
             <button
               onClick={pauseGame}
@@ -453,6 +463,132 @@ function App() {
         <span className="mx-2">|</span>
         <span>🔄 Enter — рестарт</span>
       </div>
+
+      {/* History Modal */}
+      {showHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
+          onClick={toggleHistory}
+        >
+          <div
+            className="w-full max-w-lg max-h-[85vh] bg-gradient-to-b from-[#1e1e3a] to-[#16213e] rounded-2xl border border-purple-500/30 shadow-2xl overflow-hidden flex flex-col animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-purple-500/20">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                🏆 История результатов
+              </h2>
+              <button
+                onClick={toggleHistory}
+                className="w-8 h-8 rounded-full bg-gray-700/50 hover:bg-gray-600/50 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              {history.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-5xl mb-4">📊</div>
+                  <p className="text-gray-400 text-lg">Пока нет результатов</p>
+                  <p className="text-gray-500 text-sm mt-2">Сыграйте первую игру!</p>
+                </div>
+              ) : (
+                <>
+                  {/* Stats Summary */}
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="bg-purple-600/20 rounded-lg p-2 text-center border border-purple-500/20">
+                      <div className="text-xs text-purple-300">Игр</div>
+                      <div className="text-lg font-bold text-white">{history.length}</div>
+                    </div>
+                    <div className="bg-green-600/20 rounded-lg p-2 text-center border border-green-500/20">
+                      <div className="text-xs text-green-300">Лучший</div>
+                      <div className="text-lg font-bold text-green-400">{Math.max(...history.map(h => h.score))}</div>
+                    </div>
+                    <div className="bg-amber-600/20 rounded-lg p-2 text-center border border-amber-500/20">
+                      <div className="text-xs text-amber-300">Средний</div>
+                      <div className="text-lg font-bold text-amber-400">{Math.round(history.reduce((a, b) => a + b.score, 0) / history.length)}</div>
+                    </div>
+                  </div>
+
+                  {/* Results List */}
+                  <div className="space-y-2">
+                    {history.map((result, index) => {
+                      const difficultyLabels: Record<string, string> = {
+                        easy: '🌱 Легко',
+                        medium: '🔥 Средне',
+                        hard: '💀 Сложно',
+                      };
+                      const date = new Date(result.date);
+                      const dateStr = date.toLocaleDateString('ru-RU', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      });
+                      const durationStr = result.duration >= 60
+                        ? `${Math.floor(result.duration / 60)}м ${result.duration % 60}с`
+                        : `${result.duration}с`;
+
+                      return (
+                        <div
+                          key={result.id}
+                          className="flex items-center gap-3 bg-gray-800/40 rounded-xl px-3 py-2.5 border border-gray-700/50 hover:border-purple-500/30 transition-colors"
+                        >
+                          <div className="text-lg font-bold text-gray-500 w-7 text-center">
+                            #{index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl font-bold text-white">{result.score}</span>
+                              <span className="text-xs text-gray-400">очков</span>
+                              {index === 0 && (
+                                <span className="text-xs bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full border border-yellow-500/30">
+                                  🥇 последний
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                              <span>{difficultyLabels[result.difficulty]}</span>
+                              <span>•</span>
+                              <span>🍎 {result.foodEaten}</span>
+                              <span>•</span>
+                              <span>⏱ {durationStr}</span>
+                              <span>•</span>
+                              <span>📏 {result.snakeLength}</span>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500 text-right whitespace-nowrap">
+                            {dateStr}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            {history.length > 0 && (
+              <div className="px-5 py-3 border-t border-purple-500/20 flex justify-between items-center">
+                <p className="text-xs text-gray-500">Хранится в браузере (до {50} записей)</p>
+                <button
+                  onClick={() => {
+                    if (confirm('Очистить всю историю результатов?')) {
+                      clearHistory();
+                    }
+                  }}
+                  className="btn-game px-3 py-1.5 rounded-lg bg-red-600/20 border border-red-500/30 text-xs text-red-400 hover:bg-red-600/40"
+                >
+                  🗑 Очистить
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
