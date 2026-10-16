@@ -132,14 +132,19 @@ function App() {
         ctx.arc(eye2X, eye2Y, eyeSize, 0, Math.PI * 2);
         ctx.fill();
       } else {
-        // Body with gradient
-        const progress = index / snake.length;
-        const r = Math.round(0 + progress * 26);
-        const g = Math.round(212 - progress * 100);
-        const b = Math.round(170 - progress * 50);
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        // Each segment has a unique rainbow color
+        const hue = ((index - 1) / Math.max(snake.length - 1, 1)) * 300;
+        const saturation = 80 + Math.sin(index * 0.5) * 10;
+        const lightness = 55 + Math.sin(index * 0.3) * 8;
+        ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         ctx.beginPath();
         ctx.roundRect(x + padding + 1, y + padding + 1, cellSize - (padding + 1) * 2, cellSize - (padding + 1) * 2, 3);
+        ctx.fill();
+
+        // Subtle shine on each block
+        ctx.fillStyle = `rgba(255, 255, 255, 0.15)`;
+        ctx.beginPath();
+        ctx.roundRect(x + padding + 2, y + padding + 2, (cellSize - (padding + 1) * 2) * 0.5, (cellSize - (padding + 1) * 2) * 0.35, 2);
         ctx.fill();
       }
     });
