@@ -1,1 +1,124 @@
 @import "tailwindcss";
+
+:root {
+  --game-bg: #1a1a2e;
+  --game-grid: #16213e;
+  --snake-head: #00d4aa;
+  --snake-body: #00b894;
+  --food: #ff6b6b;
+  --accent: #6c5ce7;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0f0c29 0%, #1a1a2e 50%, #16213e 100%);
+  color: #e0e0e0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 212, 170, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(0, 212, 170, 0.6); }
+}
+
+.animate-pulse-food {
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.game-canvas {
+  image-rendering: pixelated;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(108, 92, 231, 0.2), inset 0 0 60px rgba(0, 0, 0, 0.3);
+}
+
+.btn-game {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-game:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+}
+
+.btn-game:active {
+  transform: translateY(0);
+}
+
+.score-display {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(0, 212, 170, 0.1));
+  border: 1px solid rgba(108, 92, 231, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.difficulty-btn {
+  transition: all 0.2s ease;
+}
+
+.difficulty-btn.active {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: white;
+  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+}
+
+.touch-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(108, 92, 231, 0.3);
+  border: 2px solid rgba(108, 92, 231, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #a29bfe;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.touch-btn:active {
+  background: rgba(108, 92, 231, 0.6);
+  transform: scale(0.9);
+}
